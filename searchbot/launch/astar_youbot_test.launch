@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+<param name="model" value="$(arg model)"/> -->
+<arg name="robot" default="youbot"/>
+  <arg name="x_pos" default="4"/>
+  <arg name="y_pos" default="3"/>
+  <arg name="z_pos" default="0.0"/>
+  <arg name="roll" default="0"/>
+  <arg name="pitch" default="0"/>
+  <arg name="yaw" default="0"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find searchbot)/world/map1.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find youbot_description)/robots/$(arg robot).urdf.xacro" />
+
+<node pkg="searchbot"
+   name="Astar"
+   type="Astar.py"
+   output="screen"/>
+
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_robot" respawn="false" output="screen"
+    args="-param robot_description
+          -urdf
+          -x $(arg x_pos)
+          -y $(arg y_pos)
+          -z $(arg z_pos)
+          -model youbot">
+  </node>
+
+    <!-- launch joint state controller -->
+  <include file="$(find youbot_gazebo_control)/launch/joint_state_controller.launch" />
+
+  <!-- launch base controller -->
+  <include file="$(find youbot_gazebo_control)/launch/base_controller.launch" />
+
+  <!-- launch arm controller -->
+  <include file="$(find youbot_gazebo_control)/launch/arm_controller.launch" />
+  
+  <!-- launch gripper controller -->
+  <include file="$(find youbot_gazebo_control)/launch/gripper_controller.launch" />
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="100.0" />
+  </node>
+</launch>
